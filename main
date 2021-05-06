@@ -1,0 +1,308 @@
+import random
+import pygame
+import sys
+
+EFFECT_HEAL = 0
+EFFECT_DAMAGE = 1
+EFFECT_POISON = 2
+EFFECT_BUFF_DAMAGE = 3
+EFFECT_BUFF_DEFENSE = 4
+EFFECT_BUFF_RESISTANCE = 5
+EFFECT_BUFF_MAGIC = 6
+EFFECT_BUFF_DODGE = 7
+EFFECT_BUFF_SPEED = 8
+EFFECT_DEBUFF_DAMAGE = 9
+EFFECT_DEBUFF_DEFENSE = 10
+EFFECT_DEBUFF_RESISTANCE = 11
+EFFECT_DEBUFF_MAGIC = 12
+EFFECT_DEBUFF_DODGE = 13
+EFFECT_DEBUFF_SPEED = 14
+EFFECT_SELF_DAMAGE = 15
+
+ITEM_ARMOR = 16
+ITEM_WEAPON = 17
+
+LEVEL_FIGHT = 18
+LEVEL_SOCIAL = 19
+
+
+class Character:
+    def __init__(self,name,life,defense,resistance,atk,magic,xp,level,dodge,speed,skills,passive,ult_gauge,stuff,sprite):
+        self.name=name
+        self.life=life
+        self.defense=defense
+        self.atk=atk
+        self.magic=magic
+        self.xp=xp
+        self.life_save=self.life
+        self.level=level
+        self.dodge=dodge
+        self.speed=speed
+        self.skills=skills
+        self.passive=passive
+        self.ult_gauge=ult_gauge
+        self.stuff=stuff
+        self.sprite=sprite
+        self.resistance=resistance#défense mais pour la magie :)
+        self.buffs = []
+        self.debuffs = []
+
+
+    def getAtk(self):
+        return self.atk
+
+    def getLife(self):
+        return self.lif
+
+    def getDefense(self):
+        return self.defense
+
+    def getMagic(self):
+        return self.magic
+
+    def getXp(self):
+        return self.xp
+
+    def getLevel(self):
+        return self.level
+
+    def getDodge(self):
+        return self.dodge
+
+    def getSpeed(self):
+        return self.speed
+
+    def getSkills(self):
+        return self.skills
+
+    def getPassive(self):
+        return self.passive
+
+    def getUltState(self):
+        return self.ult_gauge
+
+    def getStuff(self):
+        return self.stuff
+
+    def getSprite(self):
+        return self.sprite
+
+    def getResistance(self):
+        return self.resistance
+
+    def useSkill(self, skill, target):
+        effect = skill.effect
+        if effect == EFFECT_HEAL:
+            self.life += skill.value
+        if effect == EFFECT_DAMAGE:
+            target.life -= skill.value*self.getAtk()-target.defense
+        if effect == EFFECT_POISON:
+            target.debuffs.append([EFFECT_POISON, skill.value, skill.duration])
+        if effect == EFFECT_BUFF_DAMAGE:
+            target.atk += skill.value
+        if effect == EFFECT_BUFF_DEFENSE:
+            target.defense += skill.value
+        if effect == EFFECT_BUFF_RESISTANCE:
+            target.resistance += skill.value
+        if effect == EFFECT_BUFF_MAGIC:
+            target.magic += skill.value
+        if effect == EFFECT_BUFF_DODGE:
+            target.dodge += skill.value
+        if effect == EFFECT_BUFF_SPEED:
+            target.speed += skill.value
+        if effect == EFFECT_DEBUFF_DAMAGE:
+            target.atk -= skill.value
+        if effect == EFFECT_DEBUFF_DEFENSE:
+            target.defense -= skill.value
+        if effect == EFFECT_DEBUFF_RESISTANCE:
+            target.resistance -= skill.value
+        if effect == EFFECT_DEBUFF_MAGIC:
+            target.magic -= skill.value
+        if effect == EFFECT_DEBUFF_DODGE:
+            target.dodge -= skill.value
+        if effect == EFFECT_DEBUFF_SPEED:
+            target.speed -= skill.value
+
+
+
+    def __repr__(self):
+        return str(self.name) + "("+str(self.life)+str(self.atk)+")"
+
+    """
+    def attack(self,autrep, skill):
+
+        if self.magical==True:
+            autrep.life=autrep.life-(self.damg
+        else :
+            autrep.life=autrep.life-(self.dmg-autrep.defc)
+
+
+    def win_xp(self,win,autrep):
+        if win ==1:
+            print ("ya won m'8")
+            self.xp=self.xp+10
+        if win <1:
+            print ("you bad af bro")
+        self.life=self.life_save
+        autrep.life=autrep.life_save
+    """
+
+class Skills:
+
+    def __init__(self, name, value, effect, duration):
+        self.name=name
+        self.value=value
+        self.effect=effect
+        self.duration=duration
+
+    def __repr__(self):
+        return str(self.name)+" "+str(self.value)
+
+
+class Passive:
+
+    def __init__(self, name, value, effect, cd):
+        self.name=name
+        self.value=value
+        self.effect=effect
+        self.cd=0
+        self.maxCd=0
+
+    def __repr__(self):
+        return self.name+'\n'+str(self.value)+'\n'+str(self.cd)
+class Niveau:
+
+    def __init__(self, name, enemy, lootPool):
+        self.name = name
+        self.enemy = enemy
+        self.lootPool = lootPool
+
+    def start(self):
+        result = fight(activeCharac, self.enemy)
+        if result == activeCharac:
+            print("Vous avez complété le niveau, Félicitations !")
+            reward = self.lootPool[random.randint(0,100)]
+            print("Vous avez obtenu"+reward)
+
+def fight(character1, character2):
+    StartCharac = character1
+    print("début du combat")
+    while character1.life > 0 and character2.life > 0:
+        if StartCharac == character1:
+            for e in character1.debuffs:
+                if e[0] == EFFECT_POISON:
+                    character1.life-=(e[1]-character1.resistance)
+            if character1.life <= 0:
+                break
+            move = int(input("quelle attaque voulez vous utiliser (1,2,3)"))
+            move = character1.skills[move-1]
+            print(character2.life)
+            character1.useSkill(move, character2)
+            print(character2.life)
+            StartCharac = character2
+        else:
+            for e in character2.debuffs:
+                if e[0] == EFFECT_POISON:
+                    character1.life-=(e[1]-character1.resistance)
+            if character2.life <= 0:
+                break
+            skill = 1
+            skill = character2.skills[skill-1]
+            character2.useSkill(skill, character1)
+            StartCharac = character1
+    if character1.life <= 0:
+        winner = character1
+    else:
+        winner = character2
+    character1.life=character1.life_save
+    character2.life=character2.life_save
+    return winner
+
+denji=Character("denji",200,40,5,55,0,0,1,5,50,[Skills("chainsaw rush",10,0,1)],Passive("bleeding blades",5,1000,0),0,[],"denji_dh.jpg")
+#pochita+denji=Character("denji et pochita",150,60,5,50,5,0,1,15,40,[Skills("chainsaw surge",150,3,2)],hard_life=Passive("hard life",3,3,1000,0),0,[],"denji+pochita.jpg")
+#aki=Character("aki",170,40,40,40,50,0,1,5,40,great_fox_bite=Skills("great fox bite",170,1,1),cursed_sword=Passive("cursed sword",10,6,1,4),0,[],"aki.jpg")
+power=Character("power",300,3000000,6000000,2000000000,700000000,1000000,1000000000,50000000,65000000000,[Skills("blood weapons",120,1,0)],Passive("demon blood",5,0,1),0,[],"power.jpg")
+#makima=Character("makima",1000000,1000,1000,25,80,0,1,0,10,domination=Skills("domination",100,10,1),makima_s_shield=Passive("makima's shield",100000,15,0),0,[],"makima.jpg")
+#old_yakuza=Character("old yakuza",250,30,100,50,0,0,1,10,10,yakuza_s_ambush=Skills("yakuza's ambush",250,1,1),bodyguard=Passive("bodyguard",50,7,1,2),0,[],"old_yakuza.jpg")
+ACTIVE_CHARAC = denji
+# initializing the constructor
+pygame.init()
+
+# screen resolution
+res = (720,720)
+
+# opens up a window
+screen = pygame.display.set_mode(res)
+
+# white color
+color = (255,255,255)
+
+# light shade of the button
+color_light = (170,170,170)
+
+# dark shade of the button
+color_dark = (100,100,100)
+
+# stores the width of the
+# screen into a variable
+width = screen.get_width()
+
+# stores the height of the
+# screen into a variable
+height = screen.get_height()
+
+# defining a font
+smallfont = pygame.font.SysFont('Corbel',35)
+
+# rendering a text written in
+# this font
+text = smallfont.render('Start' , True , color)
+
+while True:
+
+    for ev in pygame.event.get():
+
+        if ev.type == pygame.QUIT:
+            pygame.quit()
+
+        #checks if a mouse is clicked
+        if ev.type == pygame.MOUSEBUTTONDOWN:
+
+            #if the mouse is clicked on the
+            # button the game is terminated
+            if width/2 <= mouse[0] <= width/2+200 and height/2 <= mouse[1] <= height/2+40:
+                fight(power, denji)
+
+    # fills the screen with a color
+    fond = pygame.image.load("sunset.jpg").convert()
+    screen.blit(fond,(0,0))
+
+    # stores the (x,y) coordinates into
+    # the variable as a tuple
+    mouse = pygame.mouse.get_pos()
+
+    # if mouse is hovered on a button it
+    # changes to lighter shade
+    if width/2 <= mouse[0] <= width/2+200 and height/2 <= mouse[1] <= height/2+40:
+        pygame.draw.rect(screen,color_light,[width/2,height/2,200,40])
+
+    else:
+        pygame.draw.rect(screen,color_dark,[width/2,height/2,200,40])
+
+    # superimposing the text onto our button
+    screen.blit(text , (width/2+50,height/2))
+
+    # updates the frames of the game
+    pygame.display.update()
+
+"""
+lootpool = [1 for i in range(80)]
+for i in range(20):
+    lootpool.append(2)
+niveau_1 = Niveau("décharge", old_yakuza, lootpool)
+"""
+
+
+
+
+
